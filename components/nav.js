@@ -8,6 +8,7 @@ import styles from "./nav.module.css";
  **/
 const Nav = () => {
   const [session, loading] = useSession();
+  console.log("Nav ~ session", session);
 
   return (
     <nav>
@@ -41,7 +42,7 @@ const Nav = () => {
               className={styles.avatar}
             />
             <span className={styles.signedIn}>
-              Signed in as <strong>{session.user.email}</strong>
+              Signed in as <strong>{session.user.name}</strong>
             </span>
             <a
               href={`/api/auth/signout`}

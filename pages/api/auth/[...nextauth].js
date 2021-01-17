@@ -1,29 +1,30 @@
 import NextAuth from "next-auth";
 import Providers from "next-auth/providers";
+import jwt_decode from "jwt-decode";
 
 const options = {
   // @link https://next-auth.js.org/configuration/providers
   providers: [
-    Providers.Email({
-      // SMTP connection string or nodemailer configuration object https://nodemailer.com/
-      server: process.env.NEXTAUTH_EMAIL_SERVER,
-      // Email services often only allow sending email from a valid/verified address
-      from: process.env.NEXTAUTH_EMAIL_FROM,
-    }),
-    // When configuring oAuth providers make sure you enabling requesting
-    // permission to get the users email address (required to sign in)
-    Providers.Google({
-      clientId: process.env.NEXTAUTH_GOOGLE_ID,
-      clientSecret: process.env.NEXTAUTH_GOOGLE_SECRET,
-    }),
-    Providers.Facebook({
-      clientId: process.env.NEXTAUTH_FACEBOOK_ID,
-      clientSecret: process.env.NEXTAUTH_FACEBOOK_SECRET,
-    }),
-    Providers.Twitter({
-      clientId: process.env.NEXTAUTH_TWITTER_ID,
-      clientSecret: process.env.NEXTAUTH_TWITTER_SECRET,
-    }),
+    // Providers.Email({
+    //   // SMTP connection string or nodemailer configuration object https://nodemailer.com/
+    //   server: process.env.NEXTAUTH_EMAIL_SERVER,
+    //   // Email services often only allow sending email from a valid/verified address
+    //   from: process.env.NEXTAUTH_EMAIL_FROM,
+    // }),
+    // // When configuring oAuth providers make sure you enabling requesting
+    // // permission to get the users email address (required to sign in)
+    // Providers.Google({
+    //   clientId: process.env.NEXTAUTH_GOOGLE_ID,
+    //   clientSecret: process.env.NEXTAUTH_GOOGLE_SECRET,
+    // }),
+    // Providers.Facebook({
+    //   clientId: process.env.NEXTAUTH_FACEBOOK_ID,
+    //   clientSecret: process.env.NEXTAUTH_FACEBOOK_SECRET,
+    // }),
+    // Providers.Twitter({
+    //   clientId: process.env.NEXTAUTH_TWITTER_ID,
+    //   clientSecret: process.env.NEXTAUTH_TWITTER_SECRET,
+    // }),
     Providers.GitHub({
       clientId: process.env.NEXTAUTH_GITHUB_ID,
       clientSecret: process.env.NEXTAUTH_GITHUB_SECRET,
@@ -34,31 +35,24 @@ const options = {
     // }),
     {
       id: "line",
-      name: "Line",
+      name: "LINE",
       type: "oauth",
-      version: "2.1",
+      version: "2.0",
       scope: "profile openid email",
-      params: {
-        response_type: "code",
-        client_id: process.env.LINE_ID,
-        redirect_uri: process.env.LINE_CALLBACK_URL,
-        state: String(Date.now()),
-        scope: "profile openid",
-      },
+      params: { grant_type: "authorization_code" },
       accessTokenUrl: "https://api.line.me/oauth2/v2.1/token",
-      authorizationUrl: "https://access.line.me/oauth2/v2.1/authorize",
+      authorizationUrl:
+        "https://access.line.me/oauth2/v2.1/authorize?response_type=code",
       profileUrl: "https://api.line.me/v2/profile",
-      // params: { grant_type: "authorization_code" },
-      // accessTokenUrl: "https://api.line.me/oauth2/v2.1/token",
-      // authorizationUrl:
-      //   "https://access.line.me/oauth2/v2.1/authorize?response_type=code",
-      // profileUrl: "https://api.line.me/v2/profile",
       profile: (profile) => {
+        const email = profile?.idToken?.email
+          ? jwt_decode(profile.idToken.email)
+          : null;
         return {
-          id: profile.id,
-          name: profile.name,
-          email: profile.email,
-          image: profile.picture,
+          id: profile.userId,
+          name: profile.displayName,
+          email,
+          image: profile.pictureUrl,
         };
       },
       clientId: process.env.LINE_ID,
@@ -120,7 +114,7 @@ const options = {
      * @return {object}              Session that will be returned to the client
      */
     session: async (session, user) => {
-      //session.customSessionProperty = 'bar'
+      // session.customSessionProperty = "bar";
       return Promise.resolve(session);
     },
 
@@ -154,7 +148,7 @@ const options = {
 
   // Additional options
   // secret: 'abcdef123456789' // Recommended (but auto-generated if not specified)
-  debug: true, // Use this option to enable debug messages in the console
+  // debug: true, // Use this option to enable debug messages in the console
 };
 
 const Auth = (req, res) => NextAuth(req, res, options);
