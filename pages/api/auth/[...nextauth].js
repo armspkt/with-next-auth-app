@@ -45,18 +45,22 @@ const options = {
         "https://access.line.me/oauth2/v2.1/authorize?response_type=code",
       profileUrl: "https://api.line.me/v2/profile",
       profile: (profile) => {
-        const email = profile?.idToken?.email
-          ? jwt_decode(profile.idToken.email)
-          : null;
+        console.log("profile", profile);
+        // const email = jwt_decode(profile?.idToken)?.email;
         return {
-          id: profile.userId,
-          name: profile.displayName,
-          email,
-          image: profile.pictureUrl,
+          // id: profile.userId,
+          // name: profile.displayName,
+          // email,
+          // image: profile.pictureUrl,
+          id: profile.sub,
+          name: profile.name,
+          email: profile.email,
+          image: profile.picture,
         };
       },
       clientId: process.env.LINE_ID,
       clientSecret: process.env.LINE_SECRET,
+      idToken: true, // decode jwt idToken
     },
   ],
 
